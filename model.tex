@@ -1,0 +1,47 @@
+\documentclass[10pt,aspectratio=169]{beamer}
+
+% \usetheme{AnnArbor}
+% \usecolortheme{beaver}
+
+\usefonttheme[onlymath]{serif} % uncomment for article style math
+
+\setlength{\unitlength}{\textwidth}  % measure in textwidths
+\usepackage[normalem]{ulem}
+
+
+\beamertemplatenavigationsymbolsempty
+
+\setbeamertemplate{items}[square]
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{enumerate subitem}{\alph{enumii}.}
+\setbeamertemplate{enumerate subsubitem}{\roman{enumiii}.}
+
+\newcommand{\ind}{\stackrel{ind}{\sim}}
+
+\begin{document}
+
+\begin{frame}
+Let 
+\begin{itemize}
+\item $Y_i$ be the number of rewards obtained,
+\item $n_i$ be the number of battle attempts,
+\item Date$_i$ be the date the battle was fought,
+\item Manual$_i$ be an indicator the battle was fought manually, 
+\item $r_i$ be the particular reward, and
+\item $b_i$ be the particular battle. 
+\end{itemize}
+
+\vspace{0.1in}
+
+\[ \begin{array}{rl}
+Y_i & \ind \mbox{Bin}(n_i,\pi_i) \\
+\log\left(\frac{\pi_i}{1-\pi_i}\right) &= \beta_0 + \beta_1\times \mbox{Date}_i + \beta_2 \times n_i + \beta_3 \times \mbox{Manual}_i + \\
+& \quad \rho_{r_i} + \gamma_{b_i} + \delta_{r_i,b_i} \\
+\\
+\rho_r &\ind N\left(0,\sigma_{\mbox{reward}}^2\right) \\
+\gamma_b &\ind N\left(0,\sigma_{\mbox{battle}}^2\right) \\
+\delta_{r,b} &\ind N\left(0,\sigma_{\mbox{reward:battle}}^2\right) \\
+\end{array} \]
+\end{frame}
+
+\end{document}

@@ -41,3 +41,11 @@ vignettes/*.pdf
 
 # Figures
 *.png
+
+# LaTeX auxiliary files
+*.log
+*.nav
+*.snm
+*.synctex.gz
+*.toc
+
