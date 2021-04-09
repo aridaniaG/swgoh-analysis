@@ -199,4 +199,64 @@ pe_plot = ggplot(pe, aes(y = battle,
 ggsave(file = "equipment_shard_drop_probabilities.png",
        pe_plot, width = 16*scaling, height = 9*scaling)
 
+# Days-to-get analysis ----------------------------------------------------
+# How many tries to get a char
+# expected_days_char <- 
+#   function(dropRate, nBattleNodes, nSimsPerBattle, nShards) {
+#     expectedTrials1Shard <- 1/dropRate
+#     nTrialsPerDay        <- nBattleNodes * nSimsPerBattle
+#     expectedDays         <- nShards * expectedTrials1Shard  / nTrialsPerDay
+#     
+#     expectedDays
+#   }
 
+# Character setup
+charName   <- "Rey \\(Scavenger\\)"
+nShards    <- 280
+nGameSims  <- 5
+nNodes     <- 2
+nParamSims <- 500
+nMCSims    <- 500
+
+expit        <- function(x) { 1 / (1 + exp(-x)) }
+postLinPrd   <- posterior_linpred(m_Bayes_character, newdata = pc) 
+postProb     <- expit(postLinPrd)
+
+charPcDF     <- pc[grep(charName, pc$battle_reward), ]
+charPostProb <- rowMeans(postProb[, grep(charName, pc$battle_reward)])
+charPostDays <- sapply(sample(charPostProb, nParamSims), function(dropRate) {
+  (nShards + rnbinom(n = nMCSims, size = nShards, prob = dropRate)) /
+    (nGameSims * nNodes)
+})
+
+# Posterior probability plot for one char shard drop rate
+charPostProbPlot <- density_plot(
+  samples = as.vector(charPostProb), 
+  name    = "Drop rate for one Rey (Scavenger) shard",
+  lessthanzero = FALSE) +
+  labs(
+    x = "Drop rate"
+  )
+
+# Posterior probability plot for number of days to unlock the char
+charPostDaysPlot <- density_plot(
+  samples = as.vector(charPostDays), 
+  name    = "Number of days needed to unlock Rey (Scavenger)", 
+  lessthanzero = FALSE
+)
+
+d = ggplot_build(charPostDaysPlot)$data[[1]] %>% 
+  filter(x < quantile(charPostDays, 0.975)) %>% select(x,y)
+
+charPostDaysPlot2 <- charPostDaysPlot +
+  geom_area(data = d, aes(x = x, y = y), fill = "#C8102E", color = NA) +
+  geom_vline(xintercept = quantile(charPostDays, 0.975), linetype = "dashed") +
+  coord_cartesian(xlim = c(50, 110)) +
+  labs(
+    x = "Number of days"
+  )
+
+pp_unlock = gridExtra::grid.arrange(charPostProbPlot, charPostDaysPlot2, ncol = 2)
+
+ggsave("daystounlock_posteriors.png", pp_unlock, 
+       width = 16*scaling, height = 7*scaling)
