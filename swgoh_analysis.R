@@ -230,13 +230,44 @@ charPostDays <- sapply(sample(charPostProb, nParamSims), function(dropRate) {
 })
 
 # Posterior probability plot for one char shard drop rate
-charPostProbPlot <- density_plot(
-  samples = as.vector(charPostProb), 
-  name    = "Drop rate for one Rey (Scavenger) shard",
-  lessthanzero = FALSE) +
-  labs(
-    x = "Drop rate"
-  )
+
+X   <- postProb[, grep(charName, pc$battle_reward)]
+XDF <- data.frame(
+  paramIterId  = as.vector(row(X)),
+  battle       = charPcDF$battle[as.vector(col(X))],
+  x = as.vector(X)
+)
+
+Xqs <- apply(X, 2, quantile, c(.025,.975))
+
+charPostProbPlot <- ggplot(XDF, aes(x = x, color = battle)) +
+  geom_density(size = 1)
+
+charPostProbPlot2 <- 
+  charPostProbPlot +
+    geom_linerange(aes(
+      x    = 0.5 * (lower + upper),
+      y    = y, 
+      xmin = lower, xmax = upper, color = battle
+    ), 
+    size = 2,
+    data = data.frame(
+      y = -ggplot_build(charPostProbPlot)$layout$panel_params[[1]]$y.range[2] / 
+        50 * c(0.5, 1.5),
+      battle = charPcDF$battle,
+      lower  = Xqs[1, ],
+      upper  = Xqs[2, ]
+     )) +
+    labs(
+      title = "Drop rate for one Rey (Scavenger) shard",
+      x     = "Drop rate",
+      y     = "Probability density function",
+      color = "Battle"
+    ) + 
+    scale_color_manual(values = ISU_primary_palette[1:2]) +
+    theme(
+      legend.position = "bottom"
+    )
 
 # Posterior probability plot for number of days to unlock the char
 charPostDaysPlot <- density_plot(
@@ -256,7 +287,7 @@ charPostDaysPlot2 <- charPostDaysPlot +
     x = "Number of days"
   )
 
-pp_unlock = gridExtra::grid.arrange(charPostProbPlot, charPostDaysPlot2, ncol = 2)
+pp_unlock = gridExtra::grid.arrange(charPostProbPlot2, charPostDaysPlot2, ncol = 2)
 
 ggsave("daystounlock_posteriors.png", pp_unlock, 
        width = 16*scaling, height = 7*scaling)
